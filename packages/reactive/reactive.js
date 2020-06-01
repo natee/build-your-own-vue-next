@@ -6,10 +6,6 @@
  * })
  */
 
-function reactive(target) {
-
-}
-
 const targetMap = new WeakMap();
 
 function track(target, key) {
@@ -33,4 +29,23 @@ function trigger(target, key) {
       dep.forEach(effect => effect())
     }
   }
+}
+
+function reactive(target) {
+  const handler = {
+    get(target, key, receiver) {
+      const result = Reflect.get(target, key, receiver)
+      track(target, key)
+      return result
+    }
+    set(target, key, value, receiver) {
+      const oldVal = target[key]
+      const result = Reflect.set(target, key, value, receiver)
+      if(oldVal !== result){
+        trigger(target, key)
+      }
+      return result
+    }
+  }
+  return new Proxy(target, handler)
 }
