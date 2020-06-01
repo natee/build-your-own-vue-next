@@ -1,24 +1,24 @@
-/**
- * usage
- * const data = reactive({
- *  name: "Bob",
- *  age: 18
- * })
- */
-
 const targetMap = new WeakMap();
+let activeEffect = null
+function effect(eff) {
+  activeEffect = eff
+  activeEffect()
+  activeEffect = null
+}
 
 function track(target, key) {
-  let depsMap = targetMap.get(target)
-  if(!depsMap){
-    depsMap.set(target, depsMap = new Map())
-  }
+  if(activeEffect){
+    let depsMap = targetMap.get(target)
+    if(!depsMap){
+      targetMap.set(target, depsMap = new Map())
+    }
 
-  let dep = depsMap.get(key)
-  if(!dep) {
-    depsMap.set(key, dep = new Set());
+    let dep = depsMap.get(key)
+    if(!dep) {
+      depsMap.set(key, dep = new Set());
+    }
+    dep.add(activeEffect)
   }
-  dep.add(effect)
 }
 
 function trigger(target, key) {
@@ -37,7 +37,7 @@ function reactive(target) {
       const result = Reflect.get(target, key, receiver)
       track(target, key)
       return result
-    }
+    },
     set(target, key, value, receiver) {
       const oldVal = target[key]
       const result = Reflect.set(target, key, value, receiver)
@@ -48,4 +48,18 @@ function reactive(target) {
     }
   }
   return new Proxy(target, handler)
+}
+
+function ref(raw) {
+  const r = {
+    get value() {
+      track(r, 'value')
+      return raw
+    },
+    set value(newVal) {
+      raw = newVal
+      trigger(r, 'value)
+    }
+  }
+  return r
 }
