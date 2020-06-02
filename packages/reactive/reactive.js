@@ -58,8 +58,14 @@ function ref(raw) {
     },
     set value(newVal) {
       raw = newVal
-      trigger(r, 'value)
+      trigger(r, 'value')
     }
   }
   return r
+}
+
+function computed(getter) {
+  const result = ref();
+  effect(() => result.value = getter())
+  return result
 }
