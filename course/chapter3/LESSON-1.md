@@ -1,0 +1,275 @@
+# Lesson 1 - 实现响应式
+- [Lesson 1 - 实现响应式](#lesson-1---实现响应式)
+  - [响应基本类型变量](#响应基本类型变量)
+  - [响应对象的不同属性](#响应对象的不同属性)
+  - [响应多个对象](#响应多个对象)
+
+## 响应基本类型变量
+
+首先看一下响应式预期应该是什么样的，新建一个 `demo.js` 文件，内容如下：
+```js
+// 这种写成一行完全是为了节省空间，实际上我会一行一个变量
+let a = 1, b = 2, c = a * b
+console.log('c:' + c) // 2
+a = 2
+console.log('c:' + c) // 期望得到4
+```
+
+思考一下，如何才能做到当 `a` 变动时 `c` 跟着变化？
+
+显然，我们需要做的就是重新执行一下 `let c = a * b` 即可。
+
+那么，现在我们把需要重新执行的代码写成一个函数，代码如下：
+```js
+let a = 1, b = 2, c = 0
+let effect = () => { c = a * b }
+effect() // 首次执行更新c的值
+console.log('c:' + c) // 2
+a = 2
+console.log('c:' + c) // 期望得到4
+```
+
+现在仍然没有达成预期的效果，实际上我们还需要两个方法，一个用来存储所有需要依赖更新的 `effect`，我们假设叫 `track`，一个用来触发执行这些 `effect` 函数，假设叫做 `trigger`。
+
+**注意：** 这里我们的函数命名和 Vue 3 中保持一致，从而可以更容易理解 Vue 3 源码。
+
+代码类似这样：
+```js
+let a = 1, b = 2, c = 0
+let effect = () => { c = a * b }
+
+track() // 收集 effect 
+effect() // 首次执行更新c的值
+console.log('c:' + c) // 2
+a = 2
+trigger() // a变化时，触发effect的执行
+console.log('c:' + c) // 期望得到4
+```
+
+那么 `track` 和 `trigger` 分别做了什么，是如何实现的呢？我们暂且可以简单理解为一个“发布-订阅者模式”，`track` 就是不断给一个数组 `dep` 添加 `effect`，`trigger` 用来遍历执行 `dep` 的每一项 `effect`。
+
+现在来完成这两个函数
+
+```js
+let a = 1, b = 2, c = 0
+let effect = () => { c = a * b }
+
+let dep = new Set()
+let track = () => { dep.add(effect) }
+let trigger = () => { dep.forEach(effect => effect()) }
+
+track()
+effect() // 首次执行更新c的值
+console.log('c:' + c) // 2
+a = 2
+trigger() // a变化时，触发effect的执行
+console.log('c:' + c) // 期望得到4，实际得到4
+```
+注意这里我们使用 `Set` 来定义 `dep`，原因就是 `Set` 本身不能添加重复的 `key`，读写都非常方便。
+
+现在代码的执行结果已经符合预期了。
+```console
+c: 2
+c: 4
+```
+
+## 响应对象的不同属性
+
+通常情况，我们定义的对象都有很多的属性，每一个属性都需要有自己的 `dep`（即每个属性都需要把那些依赖了自己的effect记录下来放进自己的 `new Set()` 中），如何来实现这样的功能呢？
+
+有一段代码如下：
+```js
+let obj = { a: 10, b: 20 }
+let timesA = obj.a * 10
+let divideA = obj.a / 10
+let timesB = obj.b * 10
+let divideB = obj.b / 10
+
+// 100, 1, 200, 2
+console.log(`${timesA}, ${divideA}, ${timesB}, ${divideB}`)
+obj.a = 100
+obj.b = 200
+// 期望得到 1000, 10, 2000, 20
+console.log(`${timesA}, ${divideA}, ${timesB}, ${divideB}`)
+```
+这段代码中，按照上文讲解的，属性`a`和`b`的`dep`应该是如下：
+```js
+let depA = [
+  () => { timesA = obj.a * 10 },
+  () => { divideA = obj.a / 10 }
+]
+let depB = [ 
+  () => { timesB = obj.b * 10 },
+  () => { divideB = obj.b / 10 }
+]
+```
+
+如果代码还是按照前文的方式来写显然是不科学的，这里就要开始做一点点抽象了，收集依赖我们可以假想用`track('a')` `track('b')`这种形式分别记录对象不同`key`的依赖项，那么显然我们还需要一个东西来存放这些 `key` 及相应的`dep`。
+
+现在我们来实现这样的 `track` 函数及对应的 `trigger` 函数，代码如下：
+
+```js
+const depsMap = new Map() // 每一项都是一个 Set 对象
+function track(key) {
+  let dep = depsMap.get(key)
+  if(!dep) {
+    depsMap.set(key, dep = new Set());
+  }
+  dep.add(effect)
+}
+
+function trigger(key) {
+  let dep = depsMap.get(key)
+  if(dep) {
+    dep.forEach(effect => effect())
+  }
+}
+```
+这样就实现了对一个对象不同属性的依赖收集，那么现在这个代码最简单的使用方法将是下面这样：
+```js
+const depsMap = new Map() // 每一项都是一个 Set 对象
+function track(key) {
+  ...
+  
+  // only for usage demo
+  if(key === 'a'){
+    dep.add(effectTimesA)
+    dep.add(effectDivideA)
+  }else if(key === 'b'){
+    dep.add(effectTimesB)
+    dep.add(effectDivideB)
+  }
+}
+
+function trigger(key) {
+  ...
+}
+
+let obj = { a: 10, b: 20 }
+let timesA = 0
+let divideA = 0
+let timesB = 0
+let divideB = 0
+let effectTimesA = () => { timesA = obj.a * 10 }
+let effectDivideA = () => { divideA = obj.a / 10 }
+let effectTimesB = () => { timesB = obj.b * 10 }
+let effectDivideB = () => { divideB = obj.b / 10 }
+
+track('a')
+track('b')
+
+// 为了省事直接改成调用trigger，后文同样
+trigger('a')
+trigger('b')
+
+// 100, 1, 200, 2
+console.log(`${timesA}, ${divideA}, ${timesB}, ${divideB}`)
+obj.a = 100
+obj.b = 200
+
+trigger('a')
+trigger('b')
+// 期望得到：1000, 10, 2000, 20 实际得到：1000, 10, 2000, 20
+console.log(`${timesA}, ${divideA}, ${timesB}, ${divideB}`)
+```
+
+代码看起来仍然是臃肿无比，别着急，后面的设计会优化这个问题。
+
+## 响应多个对象
+我们已经实现了对一个对象的响应编程，那么要对多个对象实现响应式编程该怎么做呢？
+
+脑袋一拍，继续往外嵌套一层对象不就可以了吗？没错，你可以用 ES6 中的 `WeakMap` 轻松实现，`WeakMap` 刚好可以（只能）把对象当作 `key`。（题外话，[Map 和 WeakMap 的区别](https://www.jianshu.com/p/4220272051e2)）
+
+我们假想实现后是这样的效果：
+```js
+let obj1 = { a: 10, b: 20 }
+let obj2 = { c: 30, d: 40 }
+const targetMap = new WeakMap()
+
+// 省略代码
+// 获取 obj1 的 depsMap
+// 获取 obj2 的 depsMap
+
+targetMap.set(obj1, "obj1's depsMap")
+targetMap.set(obj2, "obj2's depsMap")
+```
+
+这里暂且不纠结为什么叫 `targetMap`，现在整体依赖关系如下：
+|  名称 |  类型 | key | 值 |
+|---|---|---|---|
+| targetMap  | WeakMap | object  | depsMap |
+| depsMap    | Map     | property| dep     |
+| dep        | Set     |         | effect  |
+
+- targetMap: 存放每个响应式对象（所有属性）的依赖项
+- targetMap: 存放响应式对象每个属性对应的依赖项
+- dep: 存放某个属性对应的所有依赖项（当这个对象对应属性的值发生变化时，这些依赖项函数会重新执行）
+
+现在我们可以实现这个功能了，核心代码如下：
+```js
+const targetMap = new WeakMap();
+
+function track(target, key) {
+  let depsMap = targetMap.get(target)
+  if(!depsMap){
+    targetMap.set(target, depsMap = new Map())
+  }
+
+  let dep = depsMap.get(key)
+  if(!dep) {
+    depsMap.set(key, dep = new Set());
+  }
+  // 先忽略这个
+  dep.add(effect)
+}
+
+function trigger(target, key) {
+  let depsMap = targetMap.get(target)
+  if(depsMap){
+    let dep = depsMap.get(key)
+    if(dep) {
+      dep.forEach(effect => effect())
+    }
+  }
+}
+```
+
+那么现在这个代码最简单的使用方法将是下面这样：
+```js
+const targetMap = new WeakMap();
+
+function track(target, key) {
+  ...
+
+  // only for usage demo
+  if(key === 'a'){
+    dep.add(effectTimesA)
+    dep.add(effectDivideA)
+  }
+}
+
+function trigger(target, key) {
+  ...
+}
+
+let obj = { a: 10, b: 20 }
+let timesA = 0
+let divideA = 0
+let effectTimesA = () => { timesA = obj.a * 10 }
+let effectDivideA = () => { divideA = obj.a / 10 }
+
+track(obj, 'a')
+trigger(obj, 'a')
+
+console.log(`${timesA}, ${divideA}`) // 100, 1
+obj.a = 100
+
+trigger(obj, 'a')
+console.log(`${timesA}, ${divideA}`) // 1000, 10
+```
+
+至此，我们对响应式的基本概念有了了解，我们已经做到了收集所有响应式对象的依赖项，但是现在你可以看到代码的使用是极其繁琐的，主要是因为我们还没实现自动收集依赖项、自动触发修改。
+
+消化一下，下回继续～
+
+[下一课 - Proxy 和 Reflect](./LESSON-2.md)
