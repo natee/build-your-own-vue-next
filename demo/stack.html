@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack component</title>
+  <script src="https://unpkg.com/vue@next"></script>
+  <style>
+    .ml10 {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script>
+    const { h, createApp } = Vue
+    const Stack = {
+      props: {
+        size: [String, Number]
+      },
+      // template: `
+      //   <div class="stack">
+      //     <slot></slot>
+      //   </div>
+      // `,
+      render() {
+        const slot = this.$slots.default
+          ? this.$slots.default()
+          : []
+
+        return h('div', {
+          class: 'stack'
+        }, slot.map(child => {
+          return h('div', {
+            class: `ml${this.$props.size}`
+          }, [child])
+        }))
+      }
+    }
+
+    const App = {
+      components: { Stack },
+      template: `
+      <Stack size="10">
+        <div>level 1</div>
+        <Stack size="10">
+          <div>level 1-1</div>
+          <div>level 1-2</div>
+          <Stack size="10">
+            <div>level 1-2-1</div>
+            <div>level 1-2-2</div>
+          </Stack>
+        </Stack>
+      </Stack>
+      `
+    }
+    createApp(App).mount("#app")
+  </script>
+</body>
+
+</html>
