@@ -23,13 +23,13 @@
 本章节将带你从零开始实现一个响应式库，分为如下四部分来讲解。
 
 ## Lesson 1 - 实现响应式
-[点此学习](./LESSON-1.md)
+[点此学习](./LESSON-1-REACTIVITY.md)
 
 ## Lesson 2 - Proxy 和 Reflect
-[点此学习](./LESSON-2.md)
+[点此学习](./LESSON-2-PROXY&REFLECT.md)
 
 ## Lesson 3 - activeEffect 和 ref
-[点此学习](./LESSON-3.md)
+[点此学习](./LESSON-3-ACTIVEEFFECT&REF.md)
 
 ## Lesson4 - Computed
-[点此学习](./LESSON-4.md)
+[点此学习](./LESSON-4-COMPUTED.md)

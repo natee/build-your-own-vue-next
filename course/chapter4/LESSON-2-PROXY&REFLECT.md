@@ -220,4 +220,4 @@ console.log(`${timesA}, ${divideA}`) // 1000, 10
 
 消化一下，下回继续～
 
-[上一课 - 实现响应式](./LESSON-1.md) ｜ [下一课 - activeEffect 和 ref](./LESSON-3.md)
+[上一课 - 实现响应式](./LESSON-1-REACTIVITY.md) ｜ [下一课 - activeEffect 和 ref](./LESSON-3-ACTIVEEFFECT&REF.md)

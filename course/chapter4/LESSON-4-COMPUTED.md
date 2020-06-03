@@ -138,4 +138,4 @@ function computed(getter) {
 - 嵌套的对象，如何递归响应
 - 对象某个 `key` 对应的 `value` 本身是一个 `reactive` 对象，如何处理
 
-[上一课 - activeEffect 和 ref](./LESSON-3.md) 
+[上一课 - activeEffect 和 ref](./LESSON-3-ACTIVEEFFECT&REF.md) 

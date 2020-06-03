@@ -8,19 +8,20 @@
     - [为什么要提供 render 函数](#为什么要提供-render-函数)
     - [render 函数使用方法](#render-函数使用方法)
     - [render 函数使用场景](#render-函数使用场景)
+  - [结束语](#结束语)
 
 ## Virtual DOM
 
 ### Virtual DOM 是什么
 Virtual DOM 就是用 JavaScript 对象来描述真实的 DOM 节点。
 
-例如，有这样一个 DOM 树：
+例如，有这样一段 HTML：
 ```html
 <div id="div">
   <button @click="click">click</button>
 </div>
 ```
-用 Virtual DOM 来表示就是：
+用 Virtual DOM 来表示可以是这样的（为什么说可以是这样，因为这完全取决于你的设计）：
 ```js
 const vDom = {
   tag: 'div',
@@ -124,7 +125,7 @@ level 1
 ```
 现在我们只用 `template` 是无法实现这种效果的，众所周知，`template` 只能把默认的 `slot` 渲染出来，它不能程序式处理 `slot` 的值。
 
-我们先用 `template` 来实现这个组件：
+我们先用 `template` 来实现这个组件，[stack.html](../../demo/stack.html)：
 ```js
 const Stack = {
   props: {
@@ -181,4 +182,11 @@ level 1
 - 当你发现用 JavaScript 才能更好的表达你的逻辑时，那么就用 `render` 函数
 - 日常开发的功能性组件使用 `template`，这样更高效，且 `template` 更容易被 `complier` 优化
 
-[下一章 - Reactivity响应式设计](../chapter3/REACTIVE.md)
+## 结束语
+你可能会想，为什么不直接编译成 `VNode` ，而要在中间加一层 `render` 呢？
+
+这是因为 `VNode` 本身包含的信息比较多，手写太麻烦，也许你写着写着不自觉就封装成了一个 `helper` 函数，`h` 函数就是这样的，它把**公用、灵活、复杂的逻辑封装成函数，并交给运行时**，使用这样的函数将大大降低你的编写成本。
+
+知道了为什么要有 `render` 后，才需要去设计实现它，其实主要是实现 `h` 函数。
+
+[下一章 - 编译器和渲染器](../chapter3/OVERVIEW.md)

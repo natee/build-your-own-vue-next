@@ -1,0 +1,65 @@
+# 编译器和渲染器 API初探
+- [编译器和渲染器 API初探](#编译器和渲染器-api初探)
+  - [Complier 和 Renderer](#complier-和-renderer)
+  - [编译器（Complier）真实场景](#编译器complier真实场景)
+
+## Complier 和 Renderer
+
+在[Vue 3总览](../chapter1/OVERVIEW.md)章节中，我们已经初步认识了编译器（`complier`）和渲染器（ `renderer`）的作用。
+- 编译器是用来处理模板的，它把模板编译成 `render` 函数
+- 渲染器处理 `VNode`，把组件渲染到 web 页上
+
+我们有这样一段 HTML：
+```html
+<div id="div">
+  <button @click="click">click</button>
+</div>
+```
+
+编译器会先把它处理成 `render` 函数，类似下面的代码：
+```js
+import { h } from 'vue'
+
+render() {
+  return h('div', {
+    id: 'div',
+  }, [
+    h('button', {
+      onClick: this.click
+    }, 'click')
+  ])
+}
+ ```
+渲染器通过 `render` 函数获取对应的 `VNode`，类似这样：
+```js
+const vDom = {
+  tag: 'div',
+  id: 'div',
+  children: [{
+    tag: 'button',
+    onClick: this.click,
+    text: 'click'
+  }]
+}
+```
+
+## 编译器（Complier）真实场景
+上面是一个很简单的例子，实际上，Vue 3中的编译器做了很多的**优化**工作，比如判断你的节点是静态的还是动态的、缓存事件的绑定等等。所以如果你的组件用 `template` 实现的话，反而会被 Vue 优化。
+
+我们通过 [Vue 3在线模板编译系统](https://vue-next-template-explorer.netlify.app/) 生成一段真实代码：
+```js
+import { createVNode as _createVNode, openBlock as _openBlock, createBlock as _createBlock } from "vue"
+
+export function render(_ctx, _cache) {
+  return (_openBlock(), _createBlock("div", { id: "div" }, [
+    _createVNode("button", { onClick: _ctx.click }, "click", 8 /* PROPS */, ["onClick"])
+  ]))
+}
+
+// Check the console for the AST
+```
+可以看到和我们手写的 `render` 函数还是有比较大的差异。
+
+记住这些内容，开启下一课学习～
+
+[下一课 - 设计 VNode](./LESSON-2.md)

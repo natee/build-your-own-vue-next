@@ -342,4 +342,4 @@ function ref(raw) {
 
 消化一下，下回继续～
 
-[上一课 - Proxy 和 Reflect](./LESSON-2.md) ｜ [下一课 - Computed](./LESSON-4.md)
+[上一课 - Proxy 和 Reflect](./LESSON-2-PROXY&REFLECT.md) ｜ [下一课 - Computed](./LESSON-4-COMPUTED.md)
