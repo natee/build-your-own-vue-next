@@ -1,12 +1,12 @@
 const targetMap = new WeakMap();
 let activeEffect = null
-function effect(eff) {
+export function effect(eff) {
   activeEffect = eff
   activeEffect()
   activeEffect = null
 }
 
-function track(target, key) {
+export function track(target, key) {
   if(activeEffect){
     let depsMap = targetMap.get(target)
     if(!depsMap){
@@ -21,7 +21,7 @@ function track(target, key) {
   }
 }
 
-function trigger(target, key) {
+export function trigger(target, key) {
   let depsMap = targetMap.get(target)
   if(depsMap){
     let dep = depsMap.get(key)
@@ -31,7 +31,7 @@ function trigger(target, key) {
   }
 }
 
-function reactive(target) {
+export function reactive(target) {
   const handler = {
     get(target, key, receiver) {
       const result = Reflect.get(target, key, receiver)
@@ -50,7 +50,7 @@ function reactive(target) {
   return new Proxy(target, handler)
 }
 
-function ref(raw) {
+export function ref(raw) {
   const r = {
     get value() {
       track(r, 'value')
@@ -64,7 +64,7 @@ function ref(raw) {
   return r
 }
 
-function computed(getter) {
+export function computed(getter) {
   const result = ref();
   effect(() => result.value = getter())
   return result

@@ -62,4 +62,4 @@ export function render(_ctx, _cache) {
 
 记住这些内容，开启下一课学习～
 
-[下一课 - 设计 VNode](./LESSON-2.md)
+[下一课 - 设计 VNode](./LESSON-2-VNODE.md)

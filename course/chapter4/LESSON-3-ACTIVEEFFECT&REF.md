@@ -134,7 +134,7 @@ console.log(timesA) // 1000
 ```
 
 ### 现阶段完整代码
-现在新建一个文件`reactive.js`，内容就是当前实现的完整响应式代码：
+现在新建一个文件`reactive.ts`，内容就是当前实现的完整响应式代码：
 ```js
 const targetMap = new WeakMap();
 let activeEffect = null
@@ -196,7 +196,7 @@ function reactive(target) {
 ## 实现ref
 修改 `demo.js` 代码如下：
 ```js
-import { effect, reactive } from "./reactive.js"
+import { effect, reactive } from "./reactive"
 
 let obj = reactive({ a: 10, b: 20 })
 let timesA = 0
@@ -240,7 +240,7 @@ function ref(raw) {
 
 现在我们的示例代码修改成：
 ```js
-import { effect, reactive } from "./reactive.js"
+import { effect, reactive } from "./reactive"
 
 function ref(intialValue) {
   return reactive({

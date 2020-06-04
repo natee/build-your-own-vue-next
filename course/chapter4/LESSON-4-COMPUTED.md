@@ -6,7 +6,7 @@
 
 回到上节中最后的示例代码：
 ```js
-import { effect, reactive, ref } from "./reactive.js"
+import { effect, reactive, ref } from "./reactive"
 
 let obj = reactive({ a: 10, b: 20 })
 let timesA = ref(0)
@@ -18,7 +18,7 @@ effect(() => { sum = timesA.value + obj.b })
 
 示例代码如果使用 `computed` 将变成这样：
 ```js
-import { effect, reactive, computed } from "./reactive.js"
+import { effect, reactive, computed } from "./reactive"
 
 let obj = reactive({ a: 10, b: 20 })
 let timesA = computed(() => obj.a * 10)
@@ -40,7 +40,7 @@ function computed(getter) {
 ```
 现在测试一下示例代码：
 ```js
-import { effect, reactive, ref } from "./reactive.js"
+import { effect, reactive, ref } from "./reactive"
 
 let obj = reactive({ a: 10, b: 20 })
 let timesA = computed(() => obj.a * 10)

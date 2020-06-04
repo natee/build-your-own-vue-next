@@ -126,17 +126,17 @@ export const enum ShapeFlags {
 现在我们可以修改我们的 `VNode` 如下：
 ```js
 const elementVNode = {
-  shapFlag: ShapeFlags.ELEMENT,
+  shapeFlag: ShapeFlags.ELEMENT,
   tag: 'div',
   props: null,
   children: [{
-    shapFlag: ShapeFlags.COMPONENT,
+    shapeFlag: ShapeFlags.COMPONENT,
     tag: MyComponent,
     props: null
   }]
 }
 ```
-`shapFlag` 如何用来判断 `VNode` 类型呢？按位运算即可。
+`shapeFlag` 如何用来判断 `VNode` 类型呢？按位运算即可。
 ```js
 const isComponent = vnode.shapeFlag & ShapeFlags.COMPONENT
 ```
@@ -179,7 +179,7 @@ export interface VNode {
   _isVNode: true
   // el VNode 对应的真实 DOM
   el: Element | null
-  shapFlag: ShapeFlags.ELEMENT,
+  shapeFlag: ShapeFlags.ELEMENT,
   tag: | string | Component | null,
   props: VNodeProps | null,
   children: string | Array<VNode>
