@@ -3,6 +3,7 @@
   - [用 VNode 描述 HTML](#用-vnode-描述-html)
   - [用 VNode 描述抽象内容](#用-vnode-描述抽象内容)
   - [区分 VNode 类型](#区分-vnode-类型)
+  - [区分 chldren 的类型](#区分-chldren-的类型)
   - [定义 VNode](#定义-vnode)
 
 `render` 函数返回结果就是 `h` 函数执行的结果，因此 `h` 函数的输出为 `VNode`。
@@ -97,7 +98,7 @@ const elementVNode = {
 ## 区分 VNode 类型
 这里我们给 `VNode` 增加一个字段 `shapeFlag`（这是为了和 Vue 3 保持一致），它是一个枚举类型变量，具体如下：
 
-```js
+```typescript
 export const enum ShapeFlags {
   // html 或 svg 标签
   ELEMENT = 1,
@@ -167,6 +168,33 @@ COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
 | ShapeFlags         |   bitmap         |
 | ------------------ | ---------------- |
 | COMPONENT          | 0000000`1` `1`0  |
+
+## 区分 chldren 的类型
+上面我们已经看到了 `children` 可以是数组或纯文本，但真实场景可能是：
+- `null`
+- 纯文本
+- 数组
+
+这里我们可以增加一个 `ChildrenShapeFlags` 的变量表示 `children` 的类型，但是基于之前的设计原则，我们完全可以用 `ShapeFlags` 来表示，那么同一个 `ShapeFlags` 如何既用来表示 `VNode` 的类型，又用来表示其 `children` 的类型呢？
+
+仍然是按位运算，我们通过 JavaScript 代码判断 `children` 类型，然后和当前 `VNode` 进行按位或运算即可。
+
+我们增加如下函数用来专门处理子节点类型，这和 Vue 3 中的处理一致：
+```js
+function normalizeChildren(vnode, children) {
+  let type = 0
+  if (children == null) {
+    children = null
+  } else if (Array.isArray(children)) {
+    type = ShapeFlags.ARRAY_CHILDREN
+  } else if (typeof children === 'string') {
+    children = String(children)
+    type = ShapeFlags.TEXT_CHILDREN
+  }
+  vnode.shapeFlag |= type
+}
+```
+这样我们就可以直接通过 `shapeFlag` 同时判断 `VNode` 及其 `children` 类型了。
 
 ## 定义 VNode
 至此，我们可以定义 `VNode` 结构如下：

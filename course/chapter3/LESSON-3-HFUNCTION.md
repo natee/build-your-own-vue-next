@@ -1,5 +1,6 @@
 # 实现创建 VNode 的 h 函数
 
+## 处理 `html` 类型 `VNode`
 首先我们实现一个最简单的 `h` 函数，可以是这样的，接收三个参数：
 - `tag` 标签名
 - `props` DOM 上的属性
@@ -43,17 +44,31 @@ const vdom = {
 ```
 基本符合预期，但是这里有同学可能又要问了：“这个 `vdom` 和写的 `h` 函数没什么不同，为什么不直接写 `VNode`？”
 
-这是因为我们现在的 `h` 函数所做的仅仅就是返回传入的参数，实际上根据上一课对 `VNode` 的定义，我们还缺少几个字段，这里我们补全它：
+这是因为我们现在的 `h` 函数所做的仅仅就是返回传入的参数，实际上根据我们对 `VNode` 的定义，还缺少一些字段，不过你也可以直接写 `VNode`，但这样会增加大量的额外工作。
+
+## 处理类型 `VNode` 的类型
+现在我们补全 `h` 函数，添加 `_isVNode`、`el` 和 `shapeFlag` 字段。
 ```js
-import { ShapeFlags } from './shapeFlags'
-
 function h(tag, props = null, children = null) {
+  return {
+    _isVNode: true,
+    el: null,
+    shapeFlag: null,
+    tag,
+    props,
+    children
+  }
+}
+```
+这里的 `_isVNode` 永远为 `true`，`el` 不是在创建 `VNode` 的时候赋值，所以不用处理，我们主要处理 `shapeFlag`，实际上 `shapeFlag` 有 10 种类型，我们这里只实现一个最简单的判断：
 
+```js
+function h(tag, props = null, children = null) {
   let shapeFlag = null
   // 这里为了简化，直接这样判断
   if (typeof tag === 'string') {
     shapeFlag = ShapeFlags.ELEMENT
-  } else {
+  } else if(typeof tag === 'object'){
     shapeFlag = ShapeFlags.COMPONENT
   }
 
@@ -67,27 +82,94 @@ function h(tag, props = null, children = null) {
   }
 }
 ```
-我们当然可以直接写 `VNode`，但这样会增加大量的额外工作量。
-
-现在来看一下结果：
+现在我们需要处理一下 `children` 的类型了，`VNode` 章节中我们讲过其判断逻辑，那么 `h` 函数现在完整逻辑如下：
 ```js
-const vdom = {
-  _isVNode: true,
-  el: null,
-  shapeFlag: 1,
-  tag: 'div',
-  props: { class: 'red' },
-  children: [
-    {
-      _isVNode: true,
-      el: null,
-      shapeFlag: 1,
-      tag: 'span',
-      props: null,
-      children: 'hello'
-    }
-  ]
+function h(tag, props = null, children = null) {
+  let shapeFlag = null
+  // 这里为了简化，直接这样判断
+  if (typeof tag === 'string') {
+    shapeFlag = ShapeFlags.ELEMENT
+  } else if(typeof tag === 'object'){
+    shapeFlag = ShapeFlags.COMPONENT
+  }
+
+  const vnode = {
+    _isVNode: true,
+    el: null,
+    shapeFlag,
+    tag,
+    props,
+    children
+  }
+  normalizeChildren(vnode, vnode.children)
+  return vnode
 }
+
+function normalizeChildren(vnode, children) {
+  let type = 0
+  if (children == null) {
+    children = null
+  } else if (Array.isArray(children)) {
+    type = ShapeFlags.ARRAY_CHILDREN
+  } else if (typeof children === 'object') {
+    type = ShapeFlags.SLOTS_CHILDREN
+  } else if (typeof children === 'string') {
+    children = String(children)
+    type = ShapeFlags.TEXT_CHILDREN
+  }
+  vnode.shapeFlag |= type
+}
+```
+
+现在我们重新写一个测试代码看一下 `h` 函数输入结果：
+```js
+import { h } from './h'
+const MyComponent = {
+  render() {}
+}
+const vdom = h('div', {
+  class: 'red'
+}, [
+  h('p', null, 'hello'),
+  h('p', null, null),
+  h(MyComponent)
+])
+
+console.log(vdom);
+// vdom:
+// {
+//   _isVNode: true,
+//   el: null,
+//   shapeFlag: 17,
+//   tag: 'div',
+//   props: { class: 'red' },
+//   children: [
+//     {
+//       _isVNode: true,
+//       el: null,
+//       shapeFlag: 9,
+//       tag: 'p',
+//       props: null,
+//       children: 'hello'
+//     },
+//     {
+//       _isVNode: true,
+//       el: null,
+//       shapeFlag: 1,
+//       tag: 'p',
+//       props: null,
+//       children: null
+//     },
+//     {
+//       _isVNode: true,
+//       el: null,
+//       shapeFlag: 6,
+//       tag: [Object],
+//       props: null,
+//       children: null
+//     }
+//   ]
+// }
 ```
 至此已经完成了 `h` 函数的基本设计，可以得到想要的 `VNode` 了，下一步就是把 `VNode` 渲染到页面上。
 
