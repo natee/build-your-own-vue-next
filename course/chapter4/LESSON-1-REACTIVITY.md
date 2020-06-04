@@ -272,4 +272,4 @@ console.log(`${timesA}, ${divideA}`) // 1000, 10
 
 消化一下，下回继续～
 
-[下一课 - Proxy 和 Reflect](./LESSON-2.md)
+[下一课 - Proxy 和 Reflect](./LESSON-2-PROXY&REFLECT.md)
