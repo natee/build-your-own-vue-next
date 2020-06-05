@@ -1,6 +1,9 @@
 # 实现创建 VNode 的 h 函数
+- [实现创建 VNode 的 h 函数](#实现创建-vnode-的-h-函数)
+  - [基本的 h 函数](#基本的-h-函数)
+  - [完整的 h 函数](#完整的-h-函数)
 
-## 处理 `html` 类型 `VNode`
+## 基本的 h 函数
 首先我们实现一个最简单的 `h` 函数，可以是这样的，接收三个参数：
 - `tag` 标签名
 - `props` DOM 上的属性
@@ -46,7 +49,7 @@ const vdom = {
 
 这是因为我们现在的 `h` 函数所做的仅仅就是返回传入的参数，实际上根据我们对 `VNode` 的定义，还缺少一些字段，不过你也可以直接写 `VNode`，但这样会增加大量的额外工作。
 
-## 处理类型 `VNode` 的类型
+## 完整的 h 函数
 现在我们补全 `h` 函数，添加 `_isVNode`、`el` 和 `shapeFlag` 字段。
 ```js
 function h(tag, props = null, children = null) {
@@ -69,7 +72,9 @@ function h(tag, props = null, children = null) {
   if (typeof tag === 'string') {
     shapeFlag = ShapeFlags.ELEMENT
   } else if(typeof tag === 'object'){
-    shapeFlag = ShapeFlags.COMPONENT
+    shapeFlag = ShapeFlags.STATEFUL_COMPONENT
+  } else if(typeof tag === 'function'){
+    shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT
   }
 
   return {
@@ -82,7 +87,7 @@ function h(tag, props = null, children = null) {
   }
 }
 ```
-现在我们需要处理一下 `children` 的类型了，`VNode` 章节中我们讲过其判断逻辑，那么 `h` 函数现在完整逻辑如下：
+现在我们需要处理一下 `children` 的类型了，[VNode 章节](./LESSON-2-VNODE.md)中我们讲过其判断逻辑，那么 `h` 函数现在完整逻辑如下：
 ```js
 function h(tag, props = null, children = null) {
   let shapeFlag = null
@@ -90,7 +95,9 @@ function h(tag, props = null, children = null) {
   if (typeof tag === 'string') {
     shapeFlag = ShapeFlags.ELEMENT
   } else if(typeof tag === 'object'){
-    shapeFlag = ShapeFlags.COMPONENT
+    shapeFlag = ShapeFlags.STATEFUL_COMPONENT
+  } else if(typeof tag === 'function'){
+    shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT
   }
 
   const vnode = {
@@ -163,7 +170,7 @@ console.log(vdom);
 //     {
 //       _isVNode: true,
 //       el: null,
-//       shapeFlag: 6,
+//       shapeFlag: 4,
 //       tag: [Object],
 //       props: null,
 //       children: null

@@ -61,4 +61,5 @@ Vue 3 内部原理讲解，深入理解 Vue 3，创建你自己的 Vue 3。
 
 ## 其它
 - [Vue 3在线模板编译系统](https://vue-next-template-explorer.netlify.app/)
+- [TypeScript在线运行](https://c.runoob.com/compile/5577)
 - [Vue 3渲染器的设计与实现](http://hcysun.me/vue-design/zh/essence-of-comp.html#%E7%BB%84%E4%BB%B6%E7%9A%84%E4%BA%A7%E5%87%BA%E6%98%AF%E4%BB%80%E4%B9%88)

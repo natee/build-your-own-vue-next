@@ -3,7 +3,7 @@
   - [用 VNode 描述 HTML](#用-vnode-描述-html)
   - [用 VNode 描述抽象内容](#用-vnode-描述抽象内容)
   - [区分 VNode 类型](#区分-vnode-类型)
-  - [区分 chldren 的类型](#区分-chldren-的类型)
+  - [区分 children 的类型](#区分-children-的类型)
   - [定义 VNode](#定义-vnode)
 
 `render` 函数返回结果就是 `h` 函数执行的结果，因此 `h` 函数的输出为 `VNode`。
@@ -58,7 +58,7 @@ const elementVNode = {
   }, {
     tag: 'p',
     props: null,
-    chldren: 'p text'
+    children: 'p text'
   }]
 }
 ```
@@ -169,7 +169,7 @@ COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
 | ------------------ | ---------------- |
 | COMPONENT          | 0000000`1` `1`0  |
 
-## 区分 chldren 的类型
+## 区分 children 的类型
 上面我们已经看到了 `children` 可以是数组或纯文本，但真实场景可能是：
 - `null`
 - 纯文本
