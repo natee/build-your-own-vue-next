@@ -4,7 +4,7 @@
   - [Lesson 2 - 设计 VNode](#lesson-2---设计-vnode)
   - [Lesson 3 - 实现创建 VNode 的 h 函数](#lesson-3---实现创建-vnode-的-h-函数)
   - [Lesson 4 - 实现渲染器挂载的 mount 函数](#lesson-4---实现渲染器挂载的-mount-函数)
-  - [Lesson 5 - 实现patch函数](#lesson-5---实现patch函数)
+  - [Lesson 5 - 实现 patch 函数](#lesson-5---实现-patch-函数)
 
 本章节将带你实现Vue 3的渲染器功能，分为如下四部分来讲解。
 
@@ -20,7 +20,7 @@
 ## Lesson 4 - 实现渲染器挂载的 mount 函数
 [点此学习](./LESSON-4-MOUNT.md)
 
-## Lesson 5 - 实现patch函数
+## Lesson 5 - 实现 patch 函数
 [点此学习](./LESSON-5-PATCH.md)
 
 

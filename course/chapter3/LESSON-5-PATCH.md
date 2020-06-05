@@ -1,1 +1,276 @@
 # 实现 patch 函数
+- [实现 patch 函数](#实现-patch-函数)
+  - [patch 的作用](#patch-的作用)
+  - [patch 函数实现](#patch-函数实现)
+    - [比较 props](#比较-props)
+    - [比较 children](#比较-children)
+  - [完整实现](#完整实现)
+  - [完整示例](#完整示例)
+
+## patch 的作用
+渲染器的第三个阶段就是 `Patch` 阶段，它所做的就是通过比较新旧 `VNode` 的区别，来局部更新页面的变化。
+
+举个例子，假设我们想要修改家里的一些家具位置，或者增加减少一些家具，我们可以用两种方式完成：
+1. 清空所有，然后按照新的设计开始布局
+2. 我们提前做好两份设计蓝图，比较其中的差别，然后仅仅更新这些有变化的地方
+
+很显然我们应该选择第二种方式来实现，这样工作量最少，效率最高。
+
+这里的蓝图我们可以理解为 `VNode`，真实的房间理解为真实 DOM（即 `VNode.el`），比较差别的过程就是 `patch` 函数所做的。`patch` 直接更新 `VNode.el` 现有的相关属性，这样就避免了摧毁并重建带来的性能问题。
+
+我们在 `render.ts` 中增加一个 `patch` 函数，它接收两个参数 `n1` 表示旧的 `VNode`，`n2` 表示新的 `VNode`：
+```js
+function patch(n1, n2){
+  // TODO
+}
+```
+
+举个例子，页面首先渲染一个红色的 `hello` 文本，当进行某种操作更新时，会触发 `patch` 函数，它比较前后 `VNode` 发现 `class` 和 `children` 不同，因此修改这两部分内容为新的并重新渲染。代码如下：
+```js
+import { h } from './h' 
+import { mount, patch } from './render' 
+
+const vdom = h('div', { class: 'red' }, 'hello')
+mount(vdom)
+
+const vdom2 = h('div', { class: 'green' }, 'changed')
+patch(vdom, vdom2)
+```
+
+思考一下，怎么实现这样的 `patch` 函数？你可以先尝试着自己实现它。
+
+你可能需要注意的就是：
+- `tag` 的对比
+- `props` 的对比
+- `children` 的对比
+
+## patch 函数实现
+我们知道 `VNode` 有很多类别，可以用 `vnode.shapeFlag` 来判断，这里为了简化实现过程，我们先假设它们是同一类的 `VNode`，这里我们认为 `VNode` 都是 `ELEMENT` 类型。
+如下，我们需要实现更新属性和子节点：
+```js
+function patch(n1, n2){
+  if(n1.tag === n2.tag){
+    // update props
+
+    // update children
+    
+  } else {
+    // replace
+  }
+}
+```
+
+### 比较 props
+`props` 其实就是一个对象，而比较两个 `object` 不同时，我们需要考虑：
+- 增加了属性
+- 减少了属性
+- 修改了属性
+
+所以具体实现如下：
+```js
+function patch(n1, n2){
+  if(n1.tag === n2.tag){
+    const el = n1.el // (*)
+    // update props
+    // `n1` 和 `n2` 都存在有无 `props` 的情况
+    const oldProps = n1.props || {}
+    const newProps = n2.props || {}
+    // add prop or update prop
+    for (const key in newProps) {
+      const oldVal = oldProps[key]
+      const newVal = newProps[key]
+      if(newVal !== oldVal){
+        el.setAttribute(key, newVal)
+      }
+    }
+
+    // remove prop
+    for (const key in oldProps) {
+      if(!newProps.hasOwnProperty(key)){
+        el.removeAttribute(key)
+      }
+    }
+
+    // update children
+
+  } else {
+    // replace
+  }
+}
+```
+这里我们只更新了 `n1.el` 的属性，假如之后 `n2` 变成了所谓的 `oldVNode`，其属性是没有被修改的，所以我们需要修改一行代码：
+```js
+// 把新 VNode 的元素同时赋值给旧 VNode 元素
+const el = n2.el = n1.el // (*) 
+```
+
+### 比较 children
+同样的，`children` 也分为如下形式：
+- `null`
+- 纯文本
+- 数组
+
+为了避免 `patch` 函数太长难以阅读，我们先把它按照如下方式修改：
+```js
+function patch(n1, n2){
+  if(n1.tag === n2.tag){
+    const el = n2.el = n1.el // (*)
+    patchProps(n1, n2, el)
+    patchChildren(n1, n2, el)
+  } else {
+    // replace
+  }
+}
+function patchProps(n1, n2, el) {
+  ...
+}
+
+function patchChildren(n1, n2, el){
+  // update children
+}
+```
+
+首先如果新 `children` 是 `String` 的情况：
+```js
+function patchChildren(n1, n2, el) {
+  // update children
+  const oldChildren = n1.children
+  const newChildren = n2.children
+
+  // 有人说这里为什么不处理 null 的情况？因为不想处理
+  if (isString(newChildren)) {
+    if (isString(oldChildren)) {
+      oldChildren !== newChildren && (el.textContent = newChildren)
+    } else {
+      el.textContent = newChildren
+    }
+  } else if(isArray(newChildren)) {
+    // TODO 
+  }
+}
+```
+接下来处理新 `children` 是 `Array` 的情况，同样的，我们需要判断旧 `children` 的类型：
+- `null`，直接渲染新子节点
+- 纯文本，清除节点内容，并重新渲染子节点
+- 数组，核心 `diff` 算法
+
+```js
+else if (isArray(newChildren)) {
+  if (isString(oldChildren)) {
+    el.innerHTML = ''
+    newChildren.forEach(child => {
+      mount(child, el)
+    })
+  } else if (isArray(oldChildren)) {
+    // TODO
+  }
+}
+```
+现在我们剩下新旧 `children` 均为数组要处理的情况，这里我们可以有如下方式来实现：
+1. 将旧的子节点全部移除，再将所有新的子节点添加
+2. 核心 `diff` 算法，同层级比较
+
+这里为了更容易理解 `patch` 过程，我们直接选择第一种方式实现：
+```js
+else if (isArray(oldChildren)) {
+  for (let i = 0; i < oldChildren.length; i++) {
+    el.removeChild(oldChildren[i].el)
+  }
+  for (let i = 0; i < newChildren.length; i++) {
+    mount(newChildren[i], el)
+  }
+}
+```
+
+## 完整实现
+现在我们实现的简易版本 `patch` 函数完整代码如下：
+```js
+/**
+ * @param n1 old VNode
+ * @param n2 new VNode
+ */
+function patch(n1, n2) {
+  if (n1.tag === n2.tag) {
+    const el = n2.el = n1.el // (*)
+    patchProps(n1, n2, el)
+    patchChildren(n1, n2, el)
+  } else {
+    // replace
+  }
+}
+
+function patchProps(n1, n2, el) {
+  // update props
+  // `n1` 和 `n2` 都存在有无 `props` 的情况
+  const oldProps = n1.props || {}
+  const newProps = n2.props || {}
+  // add prop or update prop
+  for (const key in newProps) {
+    const oldVal = oldProps[key]
+    const newVal = newProps[key]
+    if (newVal !== oldVal) {
+      el.setAttribute(key, newVal)
+    }
+  }
+
+  // remove prop
+  for (const key in oldProps) {
+    if (!newProps.hasOwnProperty(key)) {
+      el.removeAttribute(key)
+    }
+  }
+}
+
+function patchChildren(n1, n2, el) {
+  // update children
+  const oldChildren = n1.children
+  const newChildren = n2.children
+
+  if (isString(newChildren)) {
+    if (isString(oldChildren)) {
+      oldChildren !== newChildren && (el.textContent = newChildren)
+    } else {
+      el.textContent = newChildren
+    }
+  } else if (isArray(newChildren)) {
+    if (isString(oldChildren)) {
+      el.innerHTML = ''
+      newChildren.forEach(child => {
+        mount(child, el)
+      })
+    } else if (isArray(oldChildren)) {
+      for (let i = 0; i < oldChildren.length; i++) {
+        el.removeChild(oldChildren[i].el)
+      }
+      for (let i = 0; i < newChildren.length; i++) {
+        mount(newChildren[i], el)
+      }
+    }
+  }
+}
+```
+实际上我们还需要考虑：
+- `patch` 中处理不同 `shapeFlag`
+- `patchChildren` 中新旧 `children` 均为数组时的优化，保证 DOM 节点尽可能多的被重复使用，也即是 `diff` 算法。
+
+## 完整示例
+新建 [patch.html](../../demo/patch.html)，添加如下代码，并在浏览器中打开：
+```js
+import { h } from './h'
+import { mount, patch } from './render'
+
+const vdom = h('div', { class: 'red' }, [h('p', null, 'text children')])
+mount(vdom, document.querySelector("#app"))
+
+setTimeout(() => {
+  const vdom2 = h('div', { class: 'green' }, [h('p', null, 'changed text children')])
+  patch(vdom, vdom2);
+}, 2000)
+```
+我们可以看到效果是：页面显示红色文字 `text children`，2s 后显示绿色文字 `changed text children`。
+
+至此我们已经了解了 Vue 中渲染器的 `patch` 过程，并实现了一个最简单版本的 `patch` 函数。
+
+消化一下，下回继续～
+
+[下一课 - 实现 patch 函数](./LESSON-5-PATCH.md)

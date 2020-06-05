@@ -9,6 +9,7 @@
   - [设置 DOM 属性](#设置-dom-属性)
   - [渲染子节点](#渲染子节点)
   - [关联 `VNode` 及其 DOM](#关联-vnode-及其-dom)
+  - [完整实现](#完整实现)
   - [完整示例](#完整示例)
 
 得到 `VNode` 之后，我们需要把它渲染到页面上，这就是渲染器的 `Mount` 阶段。
@@ -98,7 +99,7 @@ function mountElement(vnode, container) {
 ### 渲染普通有状态组件
 普通有状态组件就是一个对象，通过 `render` 返回其 `VNode`， 因此其渲染方法如下：
 ```js
-export function mountStatefulComponent(vnode, container) {
+function mountStatefulComponent(vnode, container) {
   const instance = vnode.tag
   instance.$vnode = instance.render()
   mount(instance.$vnode, container)
@@ -181,13 +182,73 @@ function mountTextElement(vnode, container) {
 }
 ```
 
-现在我们来完成 `mountComponent` 函数，为了简化，我们假设 
+## 完整实现
+现在我们实现了渲染器 `mount` 所有的功能，完整代码如下：
+```js
+function mount(vnode, container) {
+  if (vnode.tag === null) {
+    mountTextElement(vnode, container)
+  } else if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
+    mountElement(vnode, container)
+  } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+    mountStatefulComponent(vnode, container)
+  } else if (vnode.shapeFlag & ShapeFlags.FUNCTIONAL_COMPONENT) {
+    mountFunctionalComponent(vnode, container)
+  }
+}
+
+function mountTextElement(vnode, container) {
+  const el = document.createTextNode(vnode.children)
+  vnode.el = el
+  container.appendChild(el)
+}
+
+function mountElement(vnode, container) {
+  const el = document.createElement(vnode.tag)
+
+  // props
+  if(vnode.props){
+    for(const key in vnode.props){
+      const value = vnode.props[key]
+      el.setAttribute(key, value)
+    }
+  }
+
+  // children
+  if(vnode.children){
+    if(typeof vnode.children === 'string'){
+      el.textContent = vnode.children
+    }else{
+      vnode.children.forEach(child => {
+        mount(child, el)
+      })
+    }
+  }
+
+  vnode.el = el
+  container.appendChild(el)
+}
+
+function mountStatefulComponent(vnode, container) {
+  const instance = vnode.tag
+  instance.$vnode = instance.render()
+  mount(instance.$vnode, container)
+  instance.$el = vnode.el = instance.$vnode.el
+}
+
+function mountFunctionalComponent(vnode, container){
+  const $vnode = vnode.tag()
+  mount($vnode, container)
+  vnode.el = $vnode.el
+}
+```
 
 ## 完整示例
 
 现在我们可以检验一下写的是否正确，新建 [vdom.html](../../demo/vdom.html)，添加如下代码，并在浏览器中打开：
 ```js
-import { h, mount } from './h'
+import { h } from './h'
+import { mount } from './render'
 
 const MyComponent = {
   render() {

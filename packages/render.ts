@@ -1,4 +1,5 @@
 import { ShapeFlags } from './shapeFlags'
+import { isArray, isString } from './utils'
 
 export function mount(vnode, container) {
   if (vnode.tag === null) {
@@ -22,18 +23,18 @@ export function mountElement(vnode, container) {
   const el = document.createElement(vnode.tag)
 
   // props
-  if(vnode.props){
-    for(const key in vnode.props){
+  if (vnode.props) {
+    for (const key in vnode.props) {
       const value = vnode.props[key]
       el.setAttribute(key, value)
     }
   }
 
   // children
-  if(vnode.children){
-    if(typeof vnode.children === 'string'){
+  if (vnode.children) {
+    if (typeof vnode.children === 'string') {
       el.textContent = vnode.children
-    }else{
+    } else {
       vnode.children.forEach(child => {
         mount(child, el)
       })
@@ -51,8 +52,72 @@ export function mountStatefulComponent(vnode, container) {
   instance.$el = vnode.el = instance.$vnode.el
 }
 
-export function mountFunctionalComponent(vnode, container){
+export function mountFunctionalComponent(vnode, container) {
   const $vnode = vnode.tag()
   mount($vnode, container)
   vnode.el = $vnode.el
+}
+
+/**
+ * @param n1 old VNode
+ * @param n2 new VNode
+ */
+export function patch(n1, n2) {
+  if (n1.tag === n2.tag) {
+    const el = n2.el = n1.el // (*)
+    patchProps(n1, n2, el)
+    patchChildren(n1, n2, el)
+  } else {
+    // replace
+  }
+}
+
+export function patchProps(n1, n2, el) {
+  // update props
+  // `n1` 和 `n2` 都存在有无 `props` 的情况
+  const oldProps = n1.props || {}
+  const newProps = n2.props || {}
+  // add prop or update prop
+  for (const key in newProps) {
+    const oldVal = oldProps[key]
+    const newVal = newProps[key]
+    if (newVal !== oldVal) {
+      el.setAttribute(key, newVal)
+    }
+  }
+
+  // remove prop
+  for (const key in oldProps) {
+    if (!newProps.hasOwnProperty(key)) {
+      el.removeAttribute(key)
+    }
+  }
+}
+
+export function patchChildren(n1, n2, el) {
+  // update children
+  const oldChildren = n1.children
+  const newChildren = n2.children
+
+  if (isString(newChildren)) {
+    if (isString(oldChildren)) {
+      oldChildren !== newChildren && (el.textContent = newChildren)
+    } else {
+      el.textContent = newChildren
+    }
+  } else if (isArray(newChildren)) {
+    if (isString(oldChildren)) {
+      el.innerHTML = ''
+      newChildren.forEach(child => {
+        mount(child, el)
+      })
+    } else if (isArray(oldChildren)) {
+      for (let i = 0; i < oldChildren.length; i++) {
+        el.removeChild(oldChildren[i].el)
+      }
+      for (let i = 0; i < newChildren.length; i++) {
+        mount(newChildren[i], el)
+      }
+    }
+  }
 }

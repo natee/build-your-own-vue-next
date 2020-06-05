@@ -31,6 +31,7 @@ Vue 3 内部原理讲解，深入理解 Vue 3，创建你自己的 Vue 3。
 **你能学到什么**
 - 了解 Vue 3 中的 `VNode`
 - 了解 `render` 的具体渲染原理
+- 了解 `diff` 算法的作用
 - 实现 Vue 3 中渲染器功能
 
 点此学习[渲染器原理及实现](./course/chapter3/OVERVIEW.md)

@@ -196,6 +196,8 @@ function normalizeChildren(vnode, children) {
 ```
 这样我们就可以直接通过 `shapeFlag` 同时判断 `VNode` 及其 `children` 类型了。
 
+> 为什么 `children` 也需要标识呢？原因只有一个：**为了 `patch` 过程的优化**。
+
 ## 定义 VNode
 至此，我们可以定义 `VNode` 结构如下：
 ```js
