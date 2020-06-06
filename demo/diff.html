@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diff Demo</title>
+  <!-- <script src="https://unpkg.com/vue@next"></script> -->
+  <style>
+    .red {
+      color: red
+    }
+
+    .green {
+      color: green
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script>
+    const isArray = Array.isArray
+    const isString = (val) => typeof val === 'string'
+    const ShapeFlags = {
+      // html 或 svg 标签
+      ELEMENT: 1,
+      // 函数式组件
+      FUNCTIONAL_COMPONENT: 1 << 1,
+      // 普通有状态组件
+      STATEFUL_COMPONENT: 1 << 2,
+      // 子节点是纯文本
+      TEXT_CHILDREN: 1 << 3,
+      // 子节点是数组
+      ARRAY_CHILDREN: 1 << 4,
+      // 子节点是 slots
+      SLOTS_CHILDREN: 1 << 5,
+      // Portal
+      PORTAL: 1 << 6,
+      // Suspense
+      SUSPENSE: 1 << 7,
+      // 需要被keepAlive的有状态组件
+      COMPONENT_SHOULD_KEEP_ALIVE: 1 << 8,
+      // 已经被keepAlive的有状态组件
+      COMPONENT_KEPT_ALIVE: 1 << 9,
+      // 有状态组件和函数式组件都是“组件”，用 COMPONENT 表示
+      // COMPONENT: ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
+    }
+
+    ShapeFlags.COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
+
+    function h(tag, props = null, children = null) {
+
+      let shapeFlag = null
+      // 这里为了简化，直接这样判断
+      if (typeof tag === 'string') {
+        shapeFlag = ShapeFlags.ELEMENT
+      } else if (typeof tag === 'object') {
+        shapeFlag = ShapeFlags.STATEFUL_COMPONENT
+      } else if (typeof tag === 'function') {
+        shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT
+      }
+
+      const vnode = {
+        _isVNode: true,
+        el: null,
+        shapeFlag,
+        tag,
+        props,
+        children
+      }
+      normalizeChildren(vnode, vnode.children)
+      return vnode
+    }
+
+    function normalizeChildren(vnode, children) {
+      let type = 0
+      if (children == null) {
+        children = null
+      } else if (Array.isArray(children)) {
+        type = ShapeFlags.ARRAY_CHILDREN
+      } else if (typeof children === 'object') {
+        type = ShapeFlags.SLOTS_CHILDREN
+      } else if (typeof children === 'string') {
+        children = String(children)
+        type = ShapeFlags.TEXT_CHILDREN
+      }
+      vnode.shapeFlag |= type
+    }
+
+    function mount(vnode, container) {
+      if (vnode.tag === null) {
+        mountTextElement(vnode, container)
+      } else if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
+        mountElement(vnode, container)
+      } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        mountStatefulComponent(vnode, container)
+      } else if (vnode.shapeFlag & ShapeFlags.FUNCTIONAL_COMPONENT) {
+        mountFunctionalComponent(vnode, container)
+      }
+    }
+
+    function mountTextElement(vnode, container) {
+      const el = document.createTextNode(vnode.children)
+      vnode.el = el
+      container.appendChild(el)
+    }
+
+    function mountElement(vnode, container) {
+      const el = document.createElement(vnode.tag)
+
+      // props
+      if (vnode.props) {
+        for (const key in vnode.props) {
+          const value = vnode.props[key]
+          el.setAttribute(key, value)
+        }
+      }
+
+      // children
+      if (vnode.children) {
+        if (typeof vnode.children === 'string') {
+          el.textContent = vnode.children
+        } else {
+          vnode.children.forEach(child => {
+            mount(child, el)
+          })
+        }
+      }
+
+      vnode.el = el
+      container.appendChild(el)
+    }
+
+    function mountStatefulComponent(vnode, container) {
+      const instance = vnode.tag
+      instance.$vnode = instance.render()
+      mount(instance.$vnode, container)
+      instance.$el = vnode.el = instance.$vnode.el
+    }
+
+    function mountFunctionalComponent(vnode, container) {
+      const $vnode = vnode.tag()
+      mount($vnode, container)
+      vnode.el = $vnode.el
+    }
+
+    /**
+     * @param n1 old VNode
+     * @param n2 new VNode
+     */
+    function patch(n1, n2) {
+      if (n1.tag === n2.tag) {
+        const el = n2.el = n1.el // (*)
+        patchProps(n1, n2, el)
+        patchChildren(n1, n2, el)
+      } else {
+        // replace
+      }
+    }
+
+    function patchProps(n1, n2, el) {
+      // update props
+      // `n1` 和 `n2` 都存在有无 `props` 的情况
+      const oldProps = n1.props || {}
+      const newProps = n2.props || {}
+      // add prop or update prop
+      for (const key in newProps) {
+        const oldVal = oldProps[key]
+        const newVal = newProps[key]
+        if (newVal !== oldVal) {
+          el.setAttribute(key, newVal)
+        }
+      }
+
+      // remove prop
+      for (const key in oldProps) {
+        if (!newProps.hasOwnProperty(key)) {
+          el.removeAttribute(key)
+        }
+      }
+    }
+
+    function patchChildren(n1, n2, el) {
+      // update children
+      const oldChildren = n1.children
+      const newChildren = n2.children
+
+      if (isString(newChildren)) {
+        if (isString(oldChildren)) {
+          oldChildren !== newChildren && (el.textContent = newChildren)
+        } else {
+          el.textContent = newChildren
+        }
+      } else if (isArray(newChildren)) {
+        if (isString(oldChildren)) {
+          el.innerHTML = ''
+          newChildren.forEach(child => {
+            mount(child, el)
+          })
+        } else if (isArray(oldChildren)) {
+          diffArrayChildren(oldChildren, newChildren, el)
+        }
+      }
+    }
+
+    function diffArrayChildren(oldChildren, newChildren, container) {
+  for (let i = 0; i < newChildren.length; i++) {
+    patch(oldChildren[i], newChildren[i])
+  }
+  if (newChildren.length > oldChildren.length) {
+    newChildren.slice(oldChildren.length).forEach(child => {
+      mount(child, container)
+    })
+  } else if (newChildren.length < oldChildren.length) {
+    oldChildren.slice(newChildren.length).forEach(child => {
+      container.removeChild(child.el)
+    })
+  }
+}
+  </script>
+  <script>
+    const vdom = h('div', { class: 'red' }, [h('p', null, 'text children')])
+    mount(vdom, document.querySelector("#app"))
+
+    setTimeout(() => {
+      const vdom2 = h('div', { class: 'green' }, [h('p', null, 'changed text children')])
+      patch(vdom, vdom2);
+    }, 1000)
+
+  </script>
+</body>
+
+</html>

@@ -112,12 +112,23 @@ export function patchChildren(n1, n2, el) {
         mount(child, el)
       })
     } else if (isArray(oldChildren)) {
-      for (let i = 0; i < oldChildren.length; i++) {
-        el.removeChild(oldChildren[i].el)
-      }
-      for (let i = 0; i < newChildren.length; i++) {
-        mount(newChildren[i], el)
-      }
+      diffArrayChildren(oldChildren, newChildren, el)
     }
+  }
+}
+
+function diffArrayChildren(oldChildren, newChildren, container) {
+  const commonLen = Math.min(newChildren.length, oldChildren.length)
+  for (let i = 0; i < commonLen; i++) {
+    patch(oldChildren[i], newChildren[i])
+  }
+  if (newChildren.length > oldChildren.length) {
+    newChildren.slice(oldChildren.length).forEach(child => {
+      mount(child, container)
+    })
+  } else if (newChildren.length < oldChildren.length) {
+    oldChildren.slice(newChildren.length).forEach(child => {
+      container.removeChild(child.el)
+    })
   }
 }

@@ -1,4 +1,4 @@
-# 构建你自己的Vue 3
+# 创建你自己的Vue 3
 Vue 3 内部原理讲解，深入理解 Vue 3，创建你自己的 Vue 3。
 Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 
@@ -69,7 +69,7 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
     - [4. Computed](./course/chapter4/4.COMPUTED.md#lesson4---computed)
       - [实现computed](./course/chapter4/4.COMPUTED.md#实现computed)
         - [现阶段完整代码](./course/chapter4/4.COMPUTED.md#现阶段完整代码-2)
-      - [Vue 3 源码](./course/chapter4/4.COMPUTED.md#vue-3-源码)
+      - [尚存问题](./course/chapter4/4.COMPUTED.md#尚存问题)
   - [第5章 创建一个迷你 Vue](#第5章-创建一个迷你-vue)
   - [其它](#其它)
 
