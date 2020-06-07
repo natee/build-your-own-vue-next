@@ -6,9 +6,9 @@ export function h(tag, props = null, children = null) {
   // 这里为了简化，直接这样判断
   if (typeof tag === 'string') {
     shapeFlag = ShapeFlags.ELEMENT
-  } else if(typeof tag === 'object'){
+  } else if (typeof tag === 'object') {
     shapeFlag = ShapeFlags.STATEFUL_COMPONENT
-  } else if(typeof tag === 'function'){
+  } else if (typeof tag === 'function') {
     shapeFlag = ShapeFlags.FUNCTIONAL_COMPONENT
   }
 
@@ -18,6 +18,7 @@ export function h(tag, props = null, children = null) {
     shapeFlag,
     tag,
     props,
+    key: props && props.key !== undefined ? props.key : null,
     children
   }
   normalizeChildren(vnode, vnode.children)
@@ -35,6 +36,12 @@ export function normalizeChildren(vnode, children) {
   } else if (typeof children === 'string') {
     children = String(children)
     type = ShapeFlags.TEXT_CHILDREN
+  } else if (typeof children === 'number') {
+    children = String(children)
+    type = ShapeFlags.TEXT_CHILDREN
   }
+  // 赋值给 vnode.children 使得修改的 children 能生效，
+  // 基本类型修改不会影响原始值
+  vnode.children = children
   vnode.shapeFlag |= type
 }

@@ -52,6 +52,11 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
         - [比较 children](./course/chapter3/5.PATCH.md#比较-children)
       - [完整实现](./course/chapter3/5.PATCH.md#完整实现)
       - [完整示例](./course/chapter3/5.PATCH.md#完整示例)
+    - [patch 函数优化](./course/chapter3/6.DIFF.md#patch-函数优化)
+      - [准备工作](./course/chapter3/6.DIFF.md#准备工作)
+      - [简单的 diff 算法](./course/chapter3/6.DIFF.md#简单的-diff-算法)
+      - [优化版本的 diff 算法](./course/chapter3/6.DIFF.md#优化版本的-diff-算法)
+      - [关于核心 diff 算法](./course/chapter3/6.DIFF.md#关于核心-diff-算法)
   - [第4章 响应式原理及实现](#第4章-响应式原理及实现)
     - [1. 实现响应式](./course/chapter4/1.REACTIVITY.md#1-实现响应式)
       - [响应基本类型变量](./course/chapter4/1.REACTIVITY.md#响应基本类型变量)
@@ -123,7 +128,9 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 ## 第5章 创建一个迷你 Vue 3
 
 
-## 结束
+## 第6章 结束
+本教程并不是要带你弄清楚 Vue 3 中的每一处，而是带你实现你自己的 Vue 3，了解每一步需要做的事情，我们实现的过程中有非常多的细节未考虑（这些缺失的细节你都可以自己去完善补充），但是大致的过程都是遵循 Vue 3 总体运行机制来实现的。
+
 ### 参考
 本教程制作过程参考了下列内容：
 - [Vue 3 Deep Dive with Evan You](https://www.vuemastery.com/courses/vue3-deep-dive-with-evan-you/parting-words)

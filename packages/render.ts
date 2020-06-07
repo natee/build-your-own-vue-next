@@ -112,23 +112,64 @@ export function patchChildren(n1, n2, el) {
         mount(child, el)
       })
     } else if (isArray(oldChildren)) {
-      diffArrayChildren(oldChildren, newChildren, el)
+      // 我们暂且这样粗暴地判断
+      const hasKey = newChildren[0].key !== null
+      if (hasKey) {
+        patchUnkeyedChildren(oldChildren, newChildren, el)
+      } else {
+        patchKeyedChildren(oldChildren, newChildren, el)
+      }
     }
   }
 }
 
-function diffArrayChildren(oldChildren, newChildren, container) {
-  const commonLen = Math.min(newChildren.length, oldChildren.length)
+/**
+ * @param c1 old old children
+ * @param c2 new new children
+ */
+function patchUnkeyedChildren(c1, c2, container) {
+  const commonLen = Math.min(c2.length, c1.length)
   for (let i = 0; i < commonLen; i++) {
-    patch(oldChildren[i], newChildren[i])
+    patch(c1[i], c2[i])
   }
-  if (newChildren.length > oldChildren.length) {
-    newChildren.slice(oldChildren.length).forEach(child => {
+  if (c2.length > c1.length) {
+    c2.slice(c1.length).forEach(child => {
       mount(child, container)
     })
-  } else if (newChildren.length < oldChildren.length) {
-    oldChildren.slice(newChildren.length).forEach(child => {
+  } else if (c2.length < c1.length) {
+    c1.slice(c2.length).forEach(child => {
       container.removeChild(child.el)
     })
+  }
+}
+
+function patchKeyedChildren(c1, c2, container) {
+  let indexArr = []
+  for (let i = 0; i < c2.length; i++) {
+    const newChild = c2[i];
+    for (let j = 0; j < c1.length; j++) {
+      const oldChild = c1[j];
+      if (newChild.key === oldChild.key) {
+        patch(oldChild, newChild)
+        indexArr.push(j)
+        break
+      }
+    }
+  }
+
+  sortChildrenElements(c1, c2, container, indexArr)
+}
+
+// n1.children = [el-a, el-b, el-c] => [el-c, el-b, el-a]
+// indexArr 为新 children 索引列表[2,1,0]
+// 这表示要把旧 children 中索引为1的元素插入到索引为0之前
+function sortChildrenElements(c1, c2, container, indexArr) {
+  let index = indexArr.length - 1
+  while (index > 0) {
+    // 把新children
+    const lastChildNode = c1[indexArr[index]].el
+    const prevChildNode = c1[indexArr[index - 1]].el
+    container.insertBefore(prevChildNode, lastChildNode)
+    index--
   }
 }

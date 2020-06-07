@@ -68,6 +68,7 @@
         shapeFlag,
         tag,
         props,
+        key: props && props.key !== undefined ? props.key : null,
         children
       }
       normalizeChildren(vnode, vnode.children)
@@ -85,7 +86,14 @@
       } else if (typeof children === 'string') {
         children = String(children)
         type = ShapeFlags.TEXT_CHILDREN
+      } else if (typeof children === 'number') {
+        children = String(children)
+        type = ShapeFlags.TEXT_CHILDREN
       }
+
+      // 赋值给 vnode.children 使得修改的 children 能生效，
+      // 基本类型修改不会影响原始值
+      vnode.children = children
       vnode.shapeFlag |= type
     }
 
@@ -200,33 +208,98 @@
             mount(child, el)
           })
         } else if (isArray(oldChildren)) {
-          diffArrayChildren(oldChildren, newChildren, el)
+          // 我们暂且这样粗暴地判断
+          const hasKey = newChildren[0].key !== null && newChildren[0].key !== undefined
+          if (!hasKey) {
+            patchUnkeyedChildren(oldChildren, newChildren, el)
+          } else {
+            patchKeyedChildren(oldChildren, newChildren, el)
+          }
         }
       }
     }
 
-    function diffArrayChildren(oldChildren, newChildren, container) {
-  for (let i = 0; i < newChildren.length; i++) {
-    patch(oldChildren[i], newChildren[i])
+    /**
+ * @param c1 old old children
+ * @param c2 new new children
+ */
+    function patchUnkeyedChildren(c1, c2, container) {
+      const commonLen = Math.min(c2.length, c1.length)
+      for (let i = 0; i < commonLen; i++) {
+        patch(c1[i], c2[i])
+      }
+      if (c2.length > c1.length) {
+        c2.slice(c1.length).forEach(child => {
+          mount(child, container)
+        })
+      } else if (c2.length < c1.length) {
+        c1.slice(c2.length).forEach(child => {
+          container.removeChild(child.el)
+        })
+      }
+    }
+
+    function patchKeyedChildren(c1, c2, container) {
+  let indexArr = []
+  for (let i = 0; i < c2.length; i++) {
+    const newChild = c2[i];
+    for (let j = 0; j < c1.length; j++) {
+      const oldChild = c1[j];
+      if (newChild.key === oldChild.key) {
+        patch(oldChild, newChild)
+        indexArr.push(j)
+        break
+      }
+    }
   }
-  if (newChildren.length > oldChildren.length) {
-    newChildren.slice(oldChildren.length).forEach(child => {
-      mount(child, container)
-    })
-  } else if (newChildren.length < oldChildren.length) {
-    oldChildren.slice(newChildren.length).forEach(child => {
-      container.removeChild(child.el)
-    })
+
+  sortChildrenElements(c1, c2, container, indexArr)
+}
+
+// n1.children = [el-a, el-b, el-c] => [el-c, el-b, el-a]
+// indexArr 为新 children 索引列表[2,1,0]
+// 这表示要把旧 children 中索引为1的元素插入到索引为0之前
+function sortChildrenElements(c1, c2, container, indexArr) {
+  let index = indexArr.length - 1
+  while (index > 0) {
+    // 把新children
+    const lastChildNode = c1[indexArr[index]].el
+    const prevChildNode = c1[indexArr[index - 1]].el
+    container.insertBefore(prevChildNode, lastChildNode)
+    index--
   }
+  
 }
   </script>
   <script>
-    const vdom = h('div', { class: 'red' }, [h('p', null, 'text children')])
-    mount(vdom, document.querySelector("#app"))
+    // const vdom1 = h('ul', null, [
+    //   h('li', null, 1),
+    //   h('li', null, 2),
+    //   h('li', null, 3)
+    // ])
+    // const vdom2 = h('ul', null, [
+    //   h('li', null, 3),
+    //   h('li', null, 2),
+    //   h('li', null, 1),
+    //   h('li', null, 4)
+    // ])
+
+    const vdom1 = h('ul', null, [
+      h('li', { key: 'a' }, 1),
+      h('li', { key: 'b' }, 2),
+      h('li', { key: 'c' }, 3)
+    ])
+
+    const vdom2 = h('ul', null, [
+      h('li', { key: 'c' }, 3),
+      h('li', { key: 'b' }, 2),
+      h('li', { key: 'a' }, 1),
+      // h('li', { key: 'd' }, 4)
+    ])
+    mount(vdom1, document.querySelector("#app"))
 
     setTimeout(() => {
-      const vdom2 = h('div', { class: 'green' }, [h('p', null, 'changed text children')])
-      patch(vdom, vdom2);
+      patch(vdom1, vdom2);
     }, 1000)
 
   </script>
