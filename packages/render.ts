@@ -145,31 +145,58 @@ function patchUnkeyedChildren(c1, c2, container) {
 
 function patchKeyedChildren(c1, c2, container) {
   let indexArr = []
+  let addElements = []
   for (let i = 0; i < c2.length; i++) {
+    let find = false
     const newChild = c2[i];
     for (let j = 0; j < c1.length; j++) {
       const oldChild = c1[j];
       if (newChild.key === oldChild.key) {
         patch(oldChild, newChild)
+        find = true
         indexArr.push(j)
         break
       }
     }
+
+    if (!find) {
+      addElements.push(i)
+    }
+  }
+
+  // 删除节点
+  for (let i = 0; i < c1.length; i++) {
+    const exist = c2.find(child => child.key === c1[i].key)
+    if (!exist) {
+      container.removeChild(c1[i].el)
+    }
   }
 
   sortChildrenElements(c1, c2, container, indexArr)
+  insertNewElements(c1, c2, container, addElements)
 }
 
-// n1.children = [el-a, el-b, el-c] => [el-c, el-b, el-a]
+// n1.children = [el-a, el-b, el-c] => [el-c, el-d, el-b, el-a]
 // indexArr 为新 children 索引列表[2,1,0]
 // 这表示要把旧 children 中索引为1的元素插入到索引为0之前
 function sortChildrenElements(c1, c2, container, indexArr) {
   let index = indexArr.length - 1
   while (index > 0) {
-    // 把新children
-    const lastChildNode = c1[indexArr[index]].el
-    const prevChildNode = c1[indexArr[index - 1]].el
-    container.insertBefore(prevChildNode, lastChildNode)
+    const nextNode = c1[indexArr[index]]
+    const prevNode = c1[indexArr[index - 1]]
+    container.insertBefore(prevNode.el, nextNode.el)
     index--
+  }
+}
+
+function insertNewElements(c1, c2, container, addElements) {
+  for (let i = 0; i < addElements.length; i++) {
+    const addElementIndex = addElements[i];
+    mount(c2[addElementIndex], container)
+    if (addElementIndex === 0) {
+      container.insertBefore(c2[addElementIndex].el, container.children[0])
+    } else {
+      container.insertBefore(c2[addElementIndex].el, container.children[addElementIndex - 1].nextSibling)
+    }
   }
 }
