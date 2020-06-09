@@ -15,7 +15,7 @@
       - [现阶段完整代码](#现阶段完整代码)
     - [实现ref](#实现ref)
       - [现阶段完整代码](#现阶段完整代码-1)
-  - [Lesson4 - Computed](#lesson4---computed)
+  - [4. Computed](#4-computed)
     - [实现computed](#实现computed)
       - [现阶段完整代码](#现阶段完整代码-2)
     - [尚存问题](#尚存问题)

@@ -1,5 +1,6 @@
 import { ShapeFlags } from './shapeFlags'
-import { isArray, isString } from './utils'
+import { isArray, isString, isOn } from './utils'
+import { effect } from './reactive'
 
 export function mount(vnode, container) {
   if (vnode.tag === null) {
@@ -26,7 +27,11 @@ export function mountElement(vnode, container) {
   if (vnode.props) {
     for (const key in vnode.props) {
       const value = vnode.props[key]
-      el.setAttribute(key, value)
+      if (isOn(key)) {
+        el.addEventListener(key.slice(2).toLowerCase(), value)
+      } else {
+        el.setAttribute(key, value)
+      }
     }
   }
 
@@ -46,10 +51,21 @@ export function mountElement(vnode, container) {
 }
 
 export function mountStatefulComponent(vnode, container) {
-  const instance = vnode.tag
-  instance.$vnode = instance.render()
-  mount(instance.$vnode, container)
-  instance.$el = vnode.el = instance.$vnode.el
+  let isMounted = false
+  let prevVdom
+  effect(() => {
+    if (!isMounted) {
+      const instance = vnode.tag
+      prevVdom = instance.$vnode = instance.render()
+      mount(prevVdom, container)
+      instance.$el = vnode.el = instance.$vnode.el
+      isMounted = true
+    } else {
+      const newVdom = vnode.tag.render()
+      patch(prevVdom, newVdom)
+      prevVdom = newVdom
+    }
+  })
 }
 
 export function mountFunctionalComponent(vnode, container) {

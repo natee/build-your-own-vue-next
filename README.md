@@ -73,7 +73,7 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
         - [现阶段完整代码](./course/chapter4/3.ACTIVEEFFECT&REF.md#现阶段完整代码)
       - [实现ref](./course/chapter4/3.ACTIVEEFFECT&REF.md#实现ref)
         - [现阶段完整代码](./course/chapter4/3.ACTIVEEFFECT&REF.md#现阶段完整代码-1)
-    - [4. Computed](./course/chapter4/4.COMPUTED.md#lesson4---computed)
+    - [4. Computed](./course/chapter4/4.COMPUTED.md#4-computed)
       - [实现computed](./course/chapter4/4.COMPUTED.md#实现computed)
         - [现阶段完整代码](./course/chapter4/4.COMPUTED.md#现阶段完整代码-2)
       - [尚存问题](./course/chapter4/4.COMPUTED.md#尚存问题)
@@ -112,7 +112,7 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 - 了解 `reactive` 设计理念
 - 开发独立的响应式库
 
-点此学习[响应式原理及实现](./chapter4/OVERVIEW.md)
+点此学习[响应式原理及实现](./course/chapter4/OVERVIEW.md)
 
 **总结**
 
@@ -128,11 +128,20 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 - ...
 
 ## 第5章 创建一个迷你 Vue 3
+**你能学到什么**
+- 整合代码，创建迷你 vue
+
+点此学习[创建一个迷你 Vue 3](./course/chapter5/MINI-VUE.md)
+
+## 第6章 Composition API介绍
+**你能学到什么**
+- 了解 Vue 3 Composition API
+- 代码组织
+
+点此学习[Composition API介绍](./course/chapter6/COMPOSITION-API.md)
 
 
-## 第6章 结束
-本教程并不是要带你弄清楚 Vue 3 中的每一处，而是带你实现你自己的 Vue 3，了解每一步需要做的事情，我们实现的过程中有非常多的细节未考虑（这些缺失的细节你都可以自己去完善补充），但是大致的过程都是遵循 Vue 3 总体运行机制来实现的。
-
+## 其它
 ### 参考
 本教程制作过程参考了下列内容：
 - [Vue 3 Deep Dive with Evan You](https://www.vuemastery.com/courses/vue3-deep-dive-with-evan-you/parting-words)
