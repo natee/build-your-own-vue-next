@@ -78,6 +78,18 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
         - [现阶段完整代码](./course/chapter4/4.COMPUTED.md#现阶段完整代码-2)
       - [尚存问题](./course/chapter4/4.COMPUTED.md#尚存问题)
   - [第5章 创建一个迷你 Vue](#第5章-创建一个迷你-vue)
+  - [第6章 Composition API](#第6章-composition-api)
+    - [介绍](./course/chapter6/COMPOSITION-API.md#介绍)
+    - [举个例子](./course/chapter6/COMPOSITION-API.md#举个例子)
+      - [需求](./course/chapter6/COMPOSITION-API.md#需求)
+      - [实现](./course/chapter6/COMPOSITION-API.md#实现)
+      - [存在的问题](./course/chapter6/COMPOSITION-API.md#存在的问题)
+    - [代码组织及复用](./course/chapter6/COMPOSITION-API.md#代码组织及复用)
+      - [需求变更](./course/chapter6/COMPOSITION-API.md#需求变更)
+      - [需求变更实现](./course/chapter6/COMPOSITION-API.md#需求变更实现)
+      - [存在的问题](./course/chapter6/COMPOSITION-API.md#存在的问题-1)
+      - [解决问题](./course/chapter6/COMPOSITION-API.md#解决问题)
+    - [使用 Composition API](./course/chapter6/COMPOSITION-API.md#使用-composition-api)
   - [其它](#其它)
 
 ## 第1章 Vue 3总览
@@ -133,7 +145,7 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 
 点此学习[创建一个迷你 Vue 3](./course/chapter5/MINI-VUE.md)
 
-## 第6章 Composition API介绍
+## 第6章 Composition API
 **你能学到什么**
 - 了解 Vue 3 Composition API
 - 代码组织

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Composition API</title>
+  <script src="https://unpkg.com/vue@next"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    const { createApp, ref, watchEffect } = Vue
+
+    function usePost(getID) {
+      const data = ref(null)
+      const error = ref(null)
+      const isPending = ref(true)
+
+      function getData(id) {
+        isPending.value = true
+        setTimeout(() => {
+          data.value = {
+            text: 'success',
+            id: id
+          }
+          isPending.value = false
+        }, 500)
+      }
+
+      watchEffect(() => {
+        getData(getID())
+      })
+
+      return {
+        data,
+        error,
+        isPending
+      }
+    }
+
+    const PostComponent = {
+      template: `
+        <div v-if="isPending">loading...</div>
+        <div v-else-if="data">data:{{data}}</div>
+        <div v-else-if="error">error:{{error.message}}</div>
+      `,
+      props: {
+        id: [Number]
+      },
+      setup(props) {
+        let { data, error, isPending } = usePost(() => props.id)
+
+        return {
+          data,
+          error,
+          isPending
+        }
+      }
+    }
+
+    const App = {
+      components: { PostComponent },
+      template: `
+        <post-component :id="id"></post-component>
+        <button @click="changeID">change ID</button>
+      `,
+      setup() {
+        const id = ref(1)
+        function changeID() { id.value++ }
+        return { id, changeID }
+      }
+    }
+
+    createApp(App).mount('#app')
+  </script>
+</body>
+
+</html>
