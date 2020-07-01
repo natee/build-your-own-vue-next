@@ -59,6 +59,8 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
         - [新增节点](./course/chapter3/6.DIFF.md#新增节点)
         - [删除节点](./course/chapter3/6.DIFF.md#删除节点)
       - [关于核心 diff 算法](./course/chapter3/6.DIFF.md#关于核心-diff-算法)
+        - [Vue 2 diff 算法](./course/chapter3/6.DIFF.md#vue-2-diff-算法)
+        - [Vue 3 diff 算法](./course/chapter3/6.DIFF.md#vue-3-diff-算法)
   - [第4章 响应式原理及实现](#第4章-响应式原理及实现)
     - [1. 实现响应式](./course/chapter4/1.REACTIVITY.md#1-实现响应式)
       - [响应基本类型变量](./course/chapter4/1.REACTIVITY.md#响应基本类型变量)
@@ -153,7 +155,7 @@ Deep Dive into Vue 3. Build Your Own Vue 3 From Scratch.
 点此学习[Composition API介绍](./course/chapter6/COMPOSITION-API.md)
 
 
-## 其它
+## 其它  
 ### 参考
 本教程制作过程参考了下列内容：
 - [Vue 3 Deep Dive with Evan You](https://www.vuemastery.com/courses/vue3-deep-dive-with-evan-you/parting-words)
