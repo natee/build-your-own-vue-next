@@ -13,7 +13,7 @@
   - [3. activeEffect 和 ref](#3-activeeffect-和-ref)
     - [只响应需要依赖更新的代码（effect）](#只响应需要依赖更新的代码effect)
       - [现阶段完整代码](#现阶段完整代码)
-    - [实现ref](#实现ref)
+    - [实现ref函数](#实现ref)
       - [现阶段完整代码](#现阶段完整代码-1)
   - [4. Computed](#4-computed)
     - [实现computed](#实现computed)
